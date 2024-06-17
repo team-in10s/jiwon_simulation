@@ -41,8 +41,6 @@ st.markdown("""
 
 # URL 파라미터 처리
 query_params = st.query_params.to_dict()
-print(query_params)
-print(query_params.keys())
 contact = None
 if 'contact' in query_params.keys():
     contact = query_params['contact']
@@ -55,15 +53,15 @@ if 'uuid' in query_params.keys():
 survey_cat = None
 if 'survey_cat' in query_params.keys():
     survey_cat = query_params['survey_cat']
-survey_result = None
-if 'survey_result' in query_params.keys():
-    survey_result = query_params['survey_result']
+survey_id = None
+if 'survey_id' in query_params.keys():
+    survey_id = query_params['survey_id']
 
 if uuid:
     st.session_state['uuid'] = uuid
     user = supabase.table('users').select('*').eq('id', uuid).execute()
     if not user.data:
-        st.warning("잘못된 접근입니다.")
+        st.error("잘못된 접근입니다.")
     else:
         st.success(f"{user.data[0]['display_name']}님 환영합니다!")
 elif contact and user_name:
@@ -87,6 +85,8 @@ elif contact and user_name:
             st.success(f"{registed_user.data['display_name']}님 환영합니다!")
         except Exception:
             st.warning("잘못된 접근입니다.")
+else:
+    st.error("잘못된 접근입니다.")
 
 categories = ['출근 및 업무환경 미리보기', '팀원 및 분위기 미리보기', '보상 및 성장가능성 미리보기', '생활권역 이동(해외/타지역) 미리보기']
 category_eng = {'출근 및 업무환경 미리보기': 'place', '팀원 및 분위기 미리보기': 'team', '보상 및 성장가능성 미리보기': 'growth', '생활권역 이동(해외/타지역) 미리보기': 'location'}
@@ -107,9 +107,9 @@ if 'company_data' not in st.session_state:
     st.session_state['company_data'] = None
 
 # 설문 결과 저장
-if survey_result and survey_cat:
-    st.session_state['survey_result'] = survey_result
-    supabase.table('simul_survey').insert({'user_id': uuid, 'category': survey_cat, 'result': survey_result}).execute()
+if survey_id and survey_cat:
+    st.session_state['survey_id'] = survey_id
+    supabase.table('simul_survey').insert({'user_id': uuid, 'category': survey_cat, 'survey_id': survey_id}).execute()
     st.session_state['responses'][category_kor[survey_cat]] = True
     st.success("설문 결과가 저장되었습니다!")
 
@@ -125,7 +125,7 @@ tally_links = {
 def handle_selection(category):
     if not st.session_state['responses'][category]:
         tally_form_url = f"{tally_links[category]}?{urlencode({'uuid': st.session_state['uuid'], 'category': category_eng[category]})}"
-        st.markdown(f'<iframe src="{tally_form_url}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="500px" frameborder="0" marginheight="0" marginwidth="0" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation">Loading…</iframe>', unsafe_allow_html=True)
+        st.markdown(f'<iframe src="{tally_form_url}&alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="500px" frameborder="0" marginheight="0" marginwidth="0" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation">Loading…</iframe>', unsafe_allow_html=True)
 
 # 시뮬레이션 영역 네모 상자 생성
 for category in categories:
@@ -209,3 +209,11 @@ if any_responses:
             company_data = st.session_state['company_data']
             st.write(f"적합도 점수: {company_data['fit_score']}")
             st.write(f"코멘트: {company_data['comments']}")
+
+st.markdown("""
+---
+### 문의
+기타 오류 및 문의 사항은 아래에 문의 부탁드립니다.
+- [카카오톡 플러스친구](http://pf.kakao.com/_xjxkJbG/chat)
+- [지원전에 홈페이지](https://jiwon.in10s.co)
+""")
