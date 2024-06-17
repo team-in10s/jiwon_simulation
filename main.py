@@ -127,9 +127,11 @@ def handle_selection(category):
     if not st.session_state['responses'][category]:
         tally_form_url = f"{tally_links[category]}?{urlencode({'uuid': st.session_state['uuid'], 'category': category_eng[category]})}"
         st.markdown(f"""
-        <iframe src="{tally_form_url}&alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" width="100%" height="600px" frameborder="1" marginheight="0" marginwidth="0" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation">Loading…</iframe>
+        <iframe id="tally-iframe-{category}" src="{tally_form_url}&alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" width="100%" height="600px" frameborder="1" marginheight="0" marginwidth="0" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation allow-top-navigation-by-user-activation">Loading…</iframe>
         <script>
-            document.querySelector('iframe').onload = function() {{
+            document.getElementById('tally-iframe-{category}').onload = function() {{
+                var iframe_{category} = document.getElementById('tally-iframe-{category}');
+                iframe_{category}.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-top-navigation allow-top-navigation-by-user-activation');
                 window.addEventListener('message', function(event) {{
                     if(event.data.eventType === 'tally:submit') {{
                         window.parent.location = '/?uuid={st.session_state['uuid']}&survey_cat={category_eng[category]}&survey_id=' + event.data.responseId;
