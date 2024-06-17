@@ -82,6 +82,7 @@ elif contact and user_name:
             {"phone": phone, "phone_confirm":True}
         )
         uuid = result.user.id
+        st.session_state['uuid'] = uuid
         supabase.table("users").insert({'id':result.user.id, 'phone_number':phone, 'display_name':user_name})
         st.success(f"{user_name}님 환영합니다!")
     except Exception:
