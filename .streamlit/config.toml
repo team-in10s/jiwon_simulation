@@ -1,0 +1,10 @@
+[server]
+iframe_sandbox = "allow-scripts allow-same-origin allow-popups allow-top-navigation allow-top-navigation-by-user-activation"
+enableStaticServing = false
+
+[client]
+showErrorDetails = false
+
+[theme]
+primaryColor = "#874FD4"
+backgroundColor = "2B242B"
