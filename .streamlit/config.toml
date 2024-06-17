@@ -4,7 +4,3 @@ enableStaticServing = false
 
 [client]
 showErrorDetails = false
-
-[theme]
-primaryColor = "#874FD4"
-backgroundColor = "2B242B"
