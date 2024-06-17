@@ -12,6 +12,7 @@ import supabase as sp
 # load_dotenv()
 # supabase_url = os.getenv("SUPABASE_URL")
 # supabase_key = os.getenv("SUPABASE_KEY")
+# supabase_service_key = os.getenv("SUPABASE_SERVICE_KEY")
 # supabase: Client = create_client(supabase_url, supabase_key)
 #배포
 supabase = sp.create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
@@ -72,9 +73,9 @@ if uuid:
         st.success(f"{user.data[0]['display_name']}님 환영합니다!")
 elif contact and user_name:
 # 테스트
-    # admin = sp.create_client(supabase_url, supabase_key, ClientOptions(auto_refresh_token=False, persist_session=False))
+    # admin = sp.create_client(supabase_url, supabase_service_key, ClientOptions(auto_refresh_token=False, persist_session=False))
     # 배포
-    admin = sp.create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"], ClientOptions(auto_refresh_token=False, persist_session=False))
+    admin = sp.create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_SERVICE_KEY"], ClientOptions(auto_refresh_token=False, persist_session=False))
     if len(contact) == 11 and contact[:3] == "010":
         phone = "82" + contact[1:]
     try:
