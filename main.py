@@ -83,6 +83,7 @@ elif contact and user_name:
             {"phone": phone, "phone_confirm":True}
         )
         uuid = result.user.id
+        print(uuid)
         st.session_state['uuid'] = uuid
         supabase.table("users").insert({'id':result.user.id, 'phone_number':phone, 'display_name':user_name})
         st.success(f"{user_name}님 환영합니다!")
@@ -131,7 +132,7 @@ tally_links = {
     '생활권역 이동(해외/타지역) 미리보기': "https://tally.so/r/mR42o9"
 }
 # 설문 탭
-tab1, tab2 = st.tabs(["Step01. 검토 조건 입력", "Step02. 검토 조건 입력"])
+tab1, tab2 = st.tabs(["Step01. 검토 조건 입력", "Step02. 회사/팀 검색"])
 with tab1:
     # 시뮬레이션 영역 선택 및 설문 처리
     def handle_selection(category):
