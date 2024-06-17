@@ -8,13 +8,13 @@ from supabase import create_client, Client, ClientOptions
 import supabase as sp
 
 # 로컬 테스트시,
-# from dotenv import load_dotenv
-# load_dotenv()
-# supabase_url = os.getenv("SUPABASE_URL")
-# supabase_key = os.getenv("SUPABASE_KEY")
-# supabase: Client = create_client(supabase_url, supabase_key)
+from dotenv import load_dotenv
+load_dotenv()
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(supabase_url, supabase_key)
 #배포
-supabase = sp.create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+# supabase = sp.create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 # 스타일 설정
 st.markdown("""
@@ -33,10 +33,36 @@ st.markdown("""
             background-color: #874FD4 !important;
         }
         [data-testid="baseButton-secondary"]:disabled{
-            background-color: #FDFDFE !important;
+            background-color: #2B242B !important;
+        }
+        input{
+            color: #2B242B !important;
+        }
+        [data-baseweb="select"]{
+            color: #2B242B !important;
         }
     </style>
     <script async src="https://tally.so/widgets/embed.js"></script>
+    <script>
+        function sendWebhookData(data) {
+            fetch('/webhook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                window.location.href = window.location.href + '?uuid=' + data.uuid + '&survey_cat=' + data.survey_cat + '&survey_id=' + data.survey_id;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+        });
+    </script>
     """, unsafe_allow_html=True)
 
 # URL 파라미터 처리
@@ -66,9 +92,9 @@ if uuid:
         st.success(f"{user.data[0]['display_name']}님 환영합니다!")
 elif contact and user_name:
 # 테스트
-    # admin = sp.create_client(supabase_url, supabase_key, ClientOptions(auto_refresh_token=False, persist_session=False))
+    admin = sp.create_client(supabase_url, supabase_key, ClientOptions(auto_refresh_token=False, persist_session=False))
     # 배포
-    admin = sp.create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"], ClientOptions(auto_refresh_token=False, persist_session=False))
+    # admin = sp.create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"], ClientOptions(auto_refresh_token=False, persist_session=False))
     if len(contact) == 11 and contact[:3] == "010":
         phone = "82" + contact[1:]
     try:
@@ -122,70 +148,77 @@ tally_links = {
     '보상 및 성장가능성 미리보기': "https://tally.so/r/wdAg0o",
     '생활권역 이동(해외/타지역) 미리보기': "https://tally.so/r/mR42o9"
 }
+# 설문 탭
+tab1, tab2 = st.tabs(["Step01. 검토 조건 입력", "Step02. 검토 조건 입력"])
+with tab1:
+    # 시뮬레이션 영역 선택 및 설문 처리
+    def handle_selection(category):
+        box_color = '#FF6F61' if not st.session_state['responses'][category] else {
+            '출근 및 업무환경 미리보기': '#A5D6A7',
+            '팀원 및 분위기 미리보기': '#81D4FA',
+            '보상 및 성장가능성 미리보기': '#FFD54F',
+            '생활권역 이동(해외/타지역) 미리보기': '#E57373'
+        }[category]
+        status = ' - 미응답' if not st.session_state['responses'][category] else ' 조건이 확인되었습니다. 회사/팀 정보까지 반드시 입력해주세요.'
 
-# 시뮬레이션 영역 선택 및 설문 처리
-def handle_selection(category):
-    if not st.session_state['responses'][category]:
-        tally_form_url = f"{tally_links[category]}?{urlencode({'uuid': st.session_state['uuid'], 'category': category_eng[category]})}"
-        st.markdown(f"""
-        <iframe id="tally-iframe-{category}" src="{tally_form_url}&alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" width="100%" height="600px" frameborder="1" marginheight="0" marginwidth="0" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation allow-top-navigation-by-user-activation">Loading…</iframe>
-        <script>
-            document.getElementById('tally-iframe-{category}').onload = function() {{
-                var iframe_{category} = document.getElementById('tally-iframe-{category}');
-                iframe_{category}.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-top-navigation allow-top-navigation-by-user-activation');
-                window.addEventListener('message', function(event) {{
-                    if(event.data.eventType === 'tally:submit') {{
-                        window.parent.location = '/?uuid={st.session_state['uuid']}&survey_cat={category_eng[category]}&survey_id=' + event.data.responseId;
-                    }}
-                }});
-            }};
-        </script>
+        st.markdown(
+            f"""
+            <div style="padding: 20px; margin: 10px; background-color: {box_color}; border-radius: 10px;">
+                <h4>{category.replace(" 미리보기","")}{status}</h4>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        if not st.session_state['responses'][category]:
+            tally_form_url = f"{tally_links[category]}?{urlencode({'uuid': st.session_state['uuid'], 'category': category_eng[category]})}"
+            st.markdown(f"""
+            <iframe id="tally-iframe-{category}" src="{tally_form_url}&alignLeft=1&hideTitle=1&transparentBackground=0&dynamicHeight=1" width="100%" height="800px" frameborder="1" marginheight="0" marginwidth="0" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation allow-top-navigation-by-user-activation">Loading…</iframe>
+            """, unsafe_allow_html=True)
+
+    category1, category2, category3, category4 = st.tabs(categories)
+    idx = 0
+    # 시뮬레이션 영역 네모 상자 생성
+    for category in categories:
+        if idx == 0:
+            with category1:
+                st.image("img/1_.png")
+                handle_selection(category)
+        if idx == 1:
+            with category2:
+                st.image("img/2_.png")
+                handle_selection(category)
+        if idx == 2:
+            with category3:
+                st.image("img/3_.png")
+                handle_selection(category)
+        if idx == 3:
+            with category4:
+                st.image("img/4_.png")
+                handle_selection(category)
+        idx+=1
+            
+
+with tab2:
+    # 안내 및 비활성화된 선택 버튼
+    st.markdown("""
+            <p>Step01.의 정보가 입력된 부분에 한해서만 시뮬레이션 결과를 확인할 수 있습니다.</p>
         """, unsafe_allow_html=True)
 
-# 시뮬레이션 영역 네모 상자 생성
-for category in categories:
-    box_color = '#FFBABA' if not st.session_state['responses'][category] else {
-        '출근 및 업무환경 미리보기': '#DFF2BF',
-        '팀원 및 분위기 미리보기': '#B3E5FC',
-        '보상 및 성장가능성 미리보기': '#FFECB3',
-        '생활권역 이동(해외/타지역) 미리보기': '#FFCDD2'
-    }[category]
-    status = '미응답' if not st.session_state['responses'][category] else '응답 완료'
+    # disabled_buttons = []
 
-    st.markdown(
-        f"""
-        <div style="padding: 20px; margin: 10px; background-color: {box_color}; border-radius: 10px;">
-            <h4>{category} - {status}</h4>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    if not st.session_state['responses'][category]:
-        handle_selection(category)
+    # for category in categories:
+    #     if not st.session_state['responses'][category]:
+    #         disabled_buttons.append(category)
+    #     else:
+    #         st.button(f'[{category}]', key=f'disabled_button_{category}', disabled=False, on_click=lambda c=category: st.session_state['selected_categories'].append(c))
 
-# 안내 및 비활성화된 선택 버튼
-st.markdown("""
-    <div style="padding: 20px; margin: 10px; background-color: #F0F0F0; border-radius: 10px;">
-        <h4>설문을 진행해야 시뮬레이션이 가능합니다.</h4>
-        <p style="color:#874FD4">아래 모든 영역에 시뮬레이션이 진행됩니다.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # for category in disabled_buttons:
+    #     st.button(f'{category} (설문 응답 필요)', key=f'disabled_button_{category}', disabled=True)
 
-disabled_buttons = []
-
-for category in categories:
-    if not st.session_state['responses'][category]:
-        disabled_buttons.append(category)
-    else:
-        st.button(f'[{category}]', key=f'disabled_button_{category}', disabled=False, on_click=lambda c=category: st.session_state['selected_categories'].append(c))
-
-for category in disabled_buttons:
-    st.button(f'{category} (설문 응답 필요)', key=f'disabled_button_{category}', disabled=True)
-
-# 하나라도 응답한 설문이 있는지 확인
-any_responses = any(st.session_state['responses'].values())
-
-if any_responses:
+    # # 하나라도 응답한 설문이 있는지 확인
+    # any_responses = any(st.session_state['responses'].values())
+    # if any_responses:
     # 기업 정보 입력
     st.title('기업 정보 입력')
     st.write("필수 입력 항목은 *로 표시됩니다.")
@@ -216,11 +249,11 @@ if any_responses:
             st.session_state['company_data'] = companies[company_name]
         else:
             st.session_state['company_data'] = None
-            st.error(f'{company_name}에 대한 정보를 찾을 수 없습니다. 24시간 내에 알림을 보내드리겠습니다.')
+            st.error(f'{company_name}에 대한 정보가 부족합니다. 리서치가 완료되는대로 24시간 내에 알림을 보내드리겠습니다.')
             supabase.table('sumul_request').insert({'user_id': uuid, 'company_name': company_name, 'jd':job_posting, 'team':team_name, 'position':position, 'rank':rank, 'status':status}).execute()
 
     if st.session_state['company_data']:
-        if st.button('시뮬레이션 결과 확인'):
+        if st.button(f'{st.session_state["company_data"]} 정보 자세히보기 (새창에서 링크 보기)'):
             company_data = st.session_state['company_data']
             st.write(f"적합도 점수: {company_data['fit_score']}")
             st.write(f"코멘트: {company_data['comments']}")

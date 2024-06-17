@@ -4,3 +4,10 @@ enableStaticServing = false
 
 [client]
 showErrorDetails = false
+
+[theme]
+base = "dark"
+primaryColor = "#874FD4"
+backgroundColor = "#2B242B"
+secondaryBackgroundColor = "#FDFDFE"
+textColor = "#FDFDFE"
