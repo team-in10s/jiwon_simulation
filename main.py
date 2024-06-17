@@ -125,7 +125,7 @@ tally_links = {
 def handle_selection(category):
     if not st.session_state['responses'][category]:
         tally_form_url = f"{tally_links[category]}?{urlencode({'uuid': st.session_state['uuid'], 'category': category_eng[category]})}"
-        st.html(f'<iframe src="{tally_form_url}&alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" width="100%" height="600px" frameborder="1" marginheight="0" marginwidth="0" sandbox="allow-top-navigation allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation">Loading…</iframe>', unsafe_allow_html=True)
+        st.markdown(f'<iframe src="{tally_form_url}&alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" width="100%" height="600px" frameborder="1" marginheight="0" marginwidth="0" sandbox="allow-top-navigation allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation">Loading…</iframe>', unsafe_allow_html=True)
 
 # 시뮬레이션 영역 네모 상자 생성
 for category in categories:
